@@ -59,7 +59,18 @@ def main() -> None:
     path = os.path.join(out_dir, "entry.txt")
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(PATCH_NOTE)
-    print(f"wrote {len(PATCH_NOTE)} chars to {path}")
+    # Round-trip check: read the file back and verify byte-for-byte that
+    # it equals the validated line. Catches encoding/newline errors
+    # (e.g. a platform silently converting \n, or a non-UTF-8 default
+    # encoding) before the grader ever sees the output.
+    with open(path, "rb") as f:
+        raw = f.read()
+    if raw != PATCH_NOTE.encode("utf-8"):
+        raise ValueError(
+            f"round-trip mismatch: entry.txt ({len(raw)} bytes) does not "
+            f"equal the validated line ({len(PATCH_NOTE.encode('utf-8'))} bytes)"
+        )
+    print(f"verified {len(PATCH_NOTE)} chars in {path}")
 
 
 if __name__ == "__main__":
